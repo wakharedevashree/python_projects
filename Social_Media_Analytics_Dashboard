@@ -1,0 +1,99 @@
+import instaloader
+import tkinter as tk
+import matplotlib.pyplot as plt
+
+def fetch_instagram_data(username, password):
+    bot = instaloader.Instaloader()
+    bot.login(user=username, passwd=password)
+    profile = instaloader.Profile.from_username(bot.context, username)
+    return profile
+
+def show_instagram_data():
+    username = username_entry.get()
+    password = password_entry.get()
+    profile = fetch_instagram_data(username, password)
+    
+    profile_info = (
+        f"Username: {profile.username}\n"
+        f"User ID: {profile.userid}\n"
+        f"Number of Posts: {profile.mediacount}\n"
+        f"Followers Count: {profile.followers}\n"
+        f"Following Count: {profile.followees}\n"
+        f"Bio: {profile.biography}\n"
+        f"External URL: {profile.external_url}"
+    )
+    profile_info_label.config(text=profile_info, bg="#FFB5C5", fg="#333333", padx=10, pady=10)
+    
+    posts = profile.get_posts()
+    post_text = ""
+    for index, post in enumerate(posts, 1):
+        post_info = (
+            f"\nPost {index}:\n"
+            f"Caption: {post.caption}\n"
+            f"Likes: {post.likes}\n"
+            f"Comments: {post.comments}\n"
+            f"Date: {post.date}\n\n"
+        )
+        post_text += post_info
+        
+        print(f"Post {index}:")
+        print("Caption:", post.caption)
+        print("Likes:", post.likes)
+        print("Comments:", post.comments)
+        print("Date:", post.date)
+        
+        # Plot pie chart for post data
+        plt.figure(figsize=(6, 4))
+        plt.pie([post.likes, post.comments], labels=['Likes', 'Comments'], autopct='%1.1f%%', startangle=140)
+        plt.title(f'Likes and Comments for Post {index}')
+        plt.show()
+    
+    post_text_widget.delete(1.0, tk.END)
+    post_text_widget.insert(tk.END, post_text)
+    post_text_widget.config(bg="#FFB5C5", fg="#333333", padx=10, pady=10)
+
+window = tk.Tk()
+window.title("Instagram Data Viewer")
+window.configure(background="#FFB5C5")
+
+# Set window size and position
+window_width = 800
+window_height = 600
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+x = (screen_width - window_width) // 2
+y = (screen_height - window_height) // 2
+window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+# Label and Entry for Username
+username_label = tk.Label(window, text="Username:", font=("Times New Roman", 16, "bold"), bg="#FFB5C5")
+username_label.grid(row=0, column=0, padx=10, pady=(20, 10))
+
+username_entry = tk.Entry(window, font=("Old Century", 14), bd=3, relief="raise")
+username_entry.grid(row=0, column=1, padx=10, pady=(20, 10), sticky="ew")
+
+# Label and Entry for Password
+password_label = tk.Label(window, text="Password:", font=("Times New Roman", 16, "bold"), bg="#FFB5C5")
+password_label.grid(row=1, column=0, padx=10, pady=10)
+
+password_entry = tk.Entry(window, show="*", font=("Times New Roman", 14), bd=3, relief="raise")
+password_entry.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+
+# Fetch Data Button
+fetch_button = tk.Button(window, text="Fetch Data", command=show_instagram_data, font=("Old Century", 16, "bold"), bg="#336699", fg="white", bd=3, relief="raise")
+fetch_button.grid(row=2, column=0, columnspan=2, padx=10, pady=(10, 20), sticky="ew")
+
+# Profile Information Label
+profile_info_label = tk.Label(window, text="", font=("Times New Roman", 16), justify="left", bd=3, relief="raise")
+profile_info_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
+
+# Post Information Text Widget
+post_text_widget = tk.Text(window, font=("Times New Roman", 14), bd=3, relief="raise")
+post_text_widget.grid(row=4, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+
+# Configure row and column weights for resizing
+window.grid_rowconfigure(4, weight=1)
+window.grid_columnconfigure(1, weight=1)
+
+# Run the Tkinter event loop
+window.mainloop()
